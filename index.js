@@ -57,8 +57,8 @@ Parser.prototype.readFile = function (filePath) {
 }
 
 Parser.prototype.loadFolder = function (folder, intoPath) {
-  console.log('-------------')
-  console.log('into: ' + intoPath)
+  this.log('-------------')
+  this.log('into: ' + intoPath)
   var data = {}
   var files = fs.readdirSync(folder)
 
@@ -66,35 +66,35 @@ Parser.prototype.loadFolder = function (folder, intoPath) {
   var indexPath = folder + '/index.js'
   if(fs.existsSync(indexPath)) {
     data = this.readFile(folder + '/index.js')
-    console.log('load index into ' + intoPath)
+    this.log('load index into ' + intoPath)
   }
   else {
-    console.log('NO INDEX IN ' + folder)
+    this.log('NO INDEX IN ' + folder)
   }
 
   for(var i = 0; i < files.length; i++) {
     var key = files[i]
-    console.log('i', i)
-    console.log('key before', key)
+    this.log('i', i)
+    this.log('key before', key)
     //Remove the extension from filenames for the gameData key
     //skills.js would go into gameData.skills
     if(key.indexOf(".") > 0) {
       var parts = key.split(".")
       parts = parts.slice(0, parts.length - 1)
-      console.log('parts', parts)
+      this.log('parts', parts)
       key = parts.join(".")
     }
     else if (key.indexOf(".") == 0) {
       key = key.substr(1)
     }
-    console.log("KEY:", key)
+    this.log("KEY:", key)
     var filePath = folder + '/' + files[i]
     //this.log('filePath', filePath)
     if(fs.lstatSync(filePath).isDirectory()) {
       //If the folder starts with a . then we put in root
       //So gamedata/classes/warrior/.moves/doubleattack.js gould go into this.gameData.moves.doubleattack
       if(files[i].substr(0, 1) == '.') {
-        console.log('DOT, load into root')
+        this.log('DOT, load into root')
         console.error('The .folder code is not yet implemented.')
         //this.loadFolder(filePath, this.gameData[files[i].substr(1)], 'gameData.' + files[i].substr(1))
       }
@@ -103,30 +103,30 @@ Parser.prototype.loadFolder = function (folder, intoPath) {
       }
     }
     else {
-      console.log('load this key: ' + key + ' into ' + intoPath)
+      this.log('load this key: ' + key + ' into ' + intoPath)
       if(key == 'index') {
-        console.log('this is an index already loaded')
+        this.log('this is an index already loaded')
       }
       else {
         if(!data.hasOwnProperty(key)) {
-          console.log('clear the into cause it does not have: ' + key)
+          this.log('clear the into cause it does not have: ' + key)
           data[key] = {}
         }
         data[key] = this.readFile(filePath)
       }
     }
   }
-  console.log('returning data to ' + intoPath + ': ' + JSON.stringify(data))
+  this.log('returning data to ' + intoPath + ': ' + JSON.stringify(data))
   return data
 }
 
 Parser.prototype.saveGameDataFile = function () {
-  console.log('this.config.outputFile', this.config.outputFile)
+  this.log('this.config.outputFile', this.config.outputFile)
   fs.writeFile(this.config.outputFile, JSON.stringify(this.gameData), function (err) {
     if(err) {
       console.error(err)
     }
-    console.log('YAY')
+    this.log('YAY')
   })
 }
 
