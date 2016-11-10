@@ -1,5 +1,6 @@
 var path          = require('path')
 var fs            = require('fs')
+var _             = require('lodash')
 
 var Parser = function () {
   this.config = {
@@ -31,7 +32,17 @@ Parser.prototype.loadSimples = function () {
 }
 
 Parser.prototype.loadFolders = function () {
-  this.gameData = this.loadFolder(this.dir, 'gameData')
+  var gameData = this.loadFolder(this.dir, 'gameData')
+  this.gameData = _.extend(this.gameData, gameData)
+  console.log('DONDODNODNODNODNODNODNDNO')
+  console.log('DONDODNODNODNODNODNODNDNO')
+  console.log('DONDODNODNODNODNODNODNDNO')
+  console.log('DONDODNODNODNODNODNODNDNO')
+  console.log('DONDODNODNODNODNODNODNDNO')
+  console.log('DONDODNODNODNODNODNODNDNO')
+  console.log('DONDODNODNODNODNODNODNDNO')
+  console.log('DONDODNODNODNODNODNODNDNO')
+  console.log('DONDODNODNODNODNODNODNDNO')
 }
 
 Parser.prototype.readMDFile = function (filePath) {
@@ -94,9 +105,9 @@ Parser.prototype.loadFolder = function (folder, intoPath) {
       //If the folder starts with a . then we put in root
       //So gamedata/classes/warrior/.moves/doubleattack.js gould go into this.gameData.moves.doubleattack
       if(files[i].substr(0, 1) == '.') {
-        this.log('DOT, load into root')
-        console.error('The .folder code is not yet implemented.')
-        //this.loadFolder(filePath, this.gameData[files[i].substr(1)], 'gameData.' + files[i].substr(1))
+        var ext = files[i].substr(1)
+        this.log('.' + ext + ', load into root')
+        this.gameData[ext] = _.extend(this.gameData[ext], this.loadFolder(filePath, 'gameData.' + ext))
       }
       else {
         data[key] = this.loadFolder(filePath, intoPath + '.' + key)
@@ -120,14 +131,43 @@ Parser.prototype.loadFolder = function (folder, intoPath) {
   return data
 }
 
+//If you give config.shorts = ['moves']
+//Then every item in gameData.moves will be cloned directly into gameData if it doesn't exist
+Parser.prototype.loadShortcuts = function () {
+  if(this.config.shortcuts) {
+    this.config.shortcuts.forEach(function (s) {
+      console.log('shortcut', s)
+      console.log('data', this.gameData[s])
+      for(var k in this.gameData[s]) {
+        if(!this.gameData[k]) {
+          this.gameData[k] = this.gameData[s][k]
+        }
+      }
+    }.bind(this))
+  }
+}
+
+Parser.prototype.loadPointers = function () {
+  for(var path in this.config.pointers) {
+    var froms = {}
+    var fromEval = 'froms = this.gameData.' + path
+    eval(fromEval)
+    var to = this.config.pointers[path]
+    for(var i = 0; i < froms.length; i++) {
+      var key = froms[i]
+      var d = 'this.gameData.' + path + '[' + i + ']=this.gameData.' + to + '.' + key
+      eval(d)
+    }
+  }
+}
+
 Parser.prototype.saveGameDataFile = function () {
   this.log('this.config.outputFile', this.config.outputFile)
   fs.writeFile(this.config.outputFile, JSON.stringify(this.gameData), function (err) {
     if(err) {
       console.error(err)
     }
-    this.log('YAY')
-  })
+  }.bind(this))
 }
 
 Parser.prototype.run = function () {
@@ -135,6 +175,8 @@ Parser.prototype.run = function () {
   this.loadSimples()
   this.loadFolders()
   this.log('Game data parsed: ', JSON.stringify(this.gameData))
+  this.loadShortcuts()
+  this.loadPointers()
   this.saveGameDataFile()
 }
 
