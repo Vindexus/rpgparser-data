@@ -126,13 +126,13 @@ Parser.prototype.loadFolder = function (folder, intoPath) {
   /*
   list_name: { points_to : 'things.subthing.list', list: ['array', 'of', 'keys', 'in_that_list']}
   */
-  console.log('intoPath', intoPath)
   for(var k in data) {
-    console.log('k', k)
     if(typeof data[k] == 'object') {
+      var subpath = intoPath.substr('gameData.'.length)
       var obj = data[k]
       if(obj.points_to) {
-        this.config.pointers[obj.points_to] = k
+        console.log('point ' + subpath + ' to ' + k)
+        this.config.pointers[subpath + '.' + k] = obj.points_to
         data[k] = data[k].list
       }
     }
@@ -158,15 +158,20 @@ Parser.prototype.loadShortcuts = function () {
 }
 
 Parser.prototype.loadPointers = function () {
+  console.log('this.config.points', this.config.pointers)
   for(var path in this.config.pointers) {
     var froms = {}
     var fromEval = 'froms = this.gameData.' + path
-    this.log(fromEval)
     eval(fromEval)
+    if(typeof froms == 'undefined') {
+      console.error('WRONG PATH IN POINTER: ' + path)
+      return
+    }
     var to = this.config.pointers[path]
     for(var i = 0; i < froms.length; i++) {
       var key = froms[i]
       var d = 'this.gameData.' + path + '[' + i + ']=this.gameData.' + to + '.' + key
+      console.log(d)
       eval(d)
     }
   }
