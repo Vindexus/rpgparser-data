@@ -1,6 +1,8 @@
 var path          = require('path')
 var fs            = require('fs')
 var _             = require('lodash')
+var showdown      = require('showdown')
+var mdConverter   = new showdown.Converter()
 
 var Parser = function () {
   this.config = {
@@ -34,15 +36,6 @@ Parser.prototype.loadSimples = function () {
 Parser.prototype.loadFolders = function () {
   var gameData = this.loadFolder(this.dir, 'gameData')
   this.gameData = _.extend(this.gameData, gameData)
-  console.log('DONDODNODNODNODNODNODNDNO')
-  console.log('DONDODNODNODNODNODNODNDNO')
-  console.log('DONDODNODNODNODNODNODNDNO')
-  console.log('DONDODNODNODNODNODNODNDNO')
-  console.log('DONDODNODNODNODNODNODNDNO')
-  console.log('DONDODNODNODNODNODNODNDNO')
-  console.log('DONDODNODNODNODNODNODNDNO')
-  console.log('DONDODNODNODNODNODNODNDNO')
-  console.log('DONDODNODNODNODNODNODNDNO')
 }
 
 Parser.prototype.readMDFile = function (filePath) {
@@ -53,7 +46,7 @@ Parser.prototype.readMDFile = function (filePath) {
     description: ""
   }
   lines.shift()
-  obj.description = lines.join("\n")
+  obj.description = mdConverter.makeHtml(lines.join("\n"))
   return obj
 }
 
@@ -128,6 +121,23 @@ Parser.prototype.loadFolder = function (folder, intoPath) {
     }
   }
   this.log('returning data to ' + intoPath + ': ' + JSON.stringify(data))
+
+  //You can declare pointer lists in your game data with the structure of
+  /*
+  list_name: { points_to : 'things.subthing.list', list: ['array', 'of', 'keys', 'in_that_list']}
+  */
+  console.log('intoPath', intoPath)
+  for(var k in data) {
+    console.log('k', k)
+    if(typeof data[k] == 'object') {
+      var obj = data[k]
+      if(obj.points_to) {
+        this.config.pointers[obj.points_to] = k
+        data[k] = data[k].list
+      }
+    }
+  }
+
   return data
 }
 
@@ -137,7 +147,7 @@ Parser.prototype.loadShortcuts = function () {
   if(this.config.shortcuts) {
     this.config.shortcuts.forEach(function (s) {
       console.log('shortcut', s)
-      console.log('data', this.gameData[s])
+      //this.log('data', this.gameData[s])
       for(var k in this.gameData[s]) {
         if(!this.gameData[k]) {
           this.gameData[k] = this.gameData[s][k]
@@ -151,6 +161,7 @@ Parser.prototype.loadPointers = function () {
   for(var path in this.config.pointers) {
     var froms = {}
     var fromEval = 'froms = this.gameData.' + path
+    this.log(fromEval)
     eval(fromEval)
     var to = this.config.pointers[path]
     for(var i = 0; i < froms.length; i++) {
