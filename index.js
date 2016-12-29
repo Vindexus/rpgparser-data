@@ -6,7 +6,8 @@ var mdConverter   = new showdown.Converter()
 
 var Parser = function () {
   this.config = {
-    debug: false
+    debug: false,
+    pointers: {}
   }
   this.gameData = {}
 }
