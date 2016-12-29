@@ -3,6 +3,7 @@ var fs            = require('fs')
 var _             = require('lodash')
 var showdown      = require('showdown')
 var mdConverter   = new showdown.Converter()
+var handlebars    = require('handlebars')
 
 var Parser = function () {
   this.config = {
@@ -132,7 +133,7 @@ Parser.prototype.loadFolder = function (folder, intoPath) {
       var subpath = intoPath.substr('gameData.'.length)
       var obj = data[k]
       if(obj.points_to) {
-        console.log('point ' + subpath + ' to ' + k)
+        this.log('point ' + subpath + ' to ' + k)
         this.config.pointers[subpath + '.' + k] = obj.points_to
         data[k] = data[k].list
       }
@@ -172,9 +173,25 @@ Parser.prototype.loadPointers = function () {
     for(var i = 0; i < froms.length; i++) {
       var key = froms[i]
       var d = 'this.gameData.' + path + '[' + i + ']=this.gameData.' + to + '.' + key
-      console.log(d)
       eval(d)
     }
+  }
+}
+
+Parser.prototype.loadHandlebars = function () {
+  this.gameData = this.getHandlebardData(this.gameData)
+}
+
+Parser.prototype.getHandlebardData = function (data) {
+  if(typeof(data) == 'string') {
+    var template = handlebars.compile(data)
+    return template(this.gameData)
+  }
+  else if(typeof(data) == 'object') {
+    for(var k in data) {
+      data[k] = this.getHandlebardData(data[k])
+    }
+    return data
   }
 }
 
@@ -194,6 +211,7 @@ Parser.prototype.run = function () {
   this.log('Game data parsed: ', JSON.stringify(this.gameData))
   this.loadShortcuts()
   this.loadPointers()
+  this.loadHandlebars()
   this.saveGameDataFile()
 }
 

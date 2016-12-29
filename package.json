@@ -9,6 +9,7 @@
   "author": "Vindexus",
   "license": "ISC",
   "dependencies": {
+    "handlebars": "^4.0.6",
     "lodash": "^4.16.6",
     "path": "^0.12.7",
     "showdown": "^1.4.4"
