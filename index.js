@@ -49,6 +49,7 @@ Parser.prototype.readMDFile = function (filePath) {
   }
   lines.shift()
   obj.description = mdConverter.makeHtml(lines.join("\n"))
+  obj.key = path.basename(filePath, path.extname(filePath))
   return obj
 }
 
