@@ -3,7 +3,7 @@ var fs            = require('fs')
 var _             = require('lodash')
 var showdown      = require('showdown')
 var mdConverter   = new showdown.Converter()
-var handlebars    = require('handlebars')
+mdConverter.setOption('literalMidWordUnderscores', true)
 
 var Parser = function () {
   this.config = {
@@ -122,7 +122,7 @@ Parser.prototype.loadFolder = function (folder, intoPath) {
       }
     }
   }
-  this.log('returning data to ' + intoPath + ': ' + JSON.stringify(data))
+  //this.log('returning data to ' + intoPath + ': ' + JSON.stringify(data))
 
   //You can declare pointer lists in your game data with the structure of
   /*
@@ -134,7 +134,7 @@ Parser.prototype.loadFolder = function (folder, intoPath) {
       var obj = data[k]
       if(obj.points_to) {
         this.log('point ' + subpath + ' to ' + k)
-        this.config.pointers[subpath + '.' + k] = obj.points_to
+        this.config.pointers[subpath + (subpath.length > 0 ? '.' : '') + k] = obj.points_to
         data[k] = data[k].list
       }
     }
@@ -148,7 +148,6 @@ Parser.prototype.loadFolder = function (folder, intoPath) {
 Parser.prototype.loadShortcuts = function () {
   if(this.config.shortcuts) {
     this.config.shortcuts.forEach(function (s) {
-      console.log('shortcut', s)
       //this.log('data', this.gameData[s])
       for(var k in this.gameData[s]) {
         if(!this.gameData[k]) {
@@ -160,7 +159,6 @@ Parser.prototype.loadShortcuts = function () {
 }
 
 Parser.prototype.loadPointers = function () {
-  console.log('this.config.points', this.config.pointers)
   for(var path in this.config.pointers) {
     var froms = {}
     var fromEval = 'froms = this.gameData.' + path
@@ -178,23 +176,6 @@ Parser.prototype.loadPointers = function () {
   }
 }
 
-Parser.prototype.loadHandlebars = function () {
-  this.gameData = this.getHandlebardData(this.gameData)
-}
-
-Parser.prototype.getHandlebardData = function (data) {
-  if(typeof(data) == 'string') {
-    var template = handlebars.compile(data)
-    return template(this.gameData)
-  }
-  else if(typeof(data) == 'object') {
-    for(var k in data) {
-      data[k] = this.getHandlebardData(data[k])
-    }
-    return data
-  }
-}
-
 Parser.prototype.saveGameDataFile = function () {
   this.log('this.config.outputFile', this.config.outputFile)
   fs.writeFile(this.config.outputFile, JSON.stringify(this.gameData), function (err) {
@@ -208,10 +189,9 @@ Parser.prototype.run = function () {
   this.log("shortcuts: ", this.config.shortcuts)
   this.loadSimples()
   this.loadFolders()
-  this.log('Game data parsed: ', JSON.stringify(this.gameData))
+  //this.log('Game data parsed: ', JSON.stringify(this.gameData))
   this.loadShortcuts()
   this.loadPointers()
-  this.loadHandlebars()
   this.saveGameDataFile()
 }
 
