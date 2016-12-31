@@ -106,7 +106,8 @@ Parser.prototype.loadFolder = function (folder, intoPath) {
         this.gameData[ext] = _.extend(this.gameData[ext], this.loadFolder(filePath, 'gameData.' + ext))
       }
       else {
-        data[key] = this.loadFolder(filePath, intoPath + '.' + key)
+        console.log('INSERT ' + key)
+        data[key] = _.extend(this.gameData[key], this.loadFolder(filePath, intoPath + '.' + key))
       }
     }
     else {
@@ -129,6 +130,7 @@ Parser.prototype.loadFolder = function (folder, intoPath) {
   /*
   list_name: { points_to : 'things.subthing.list', list: ['array', 'of', 'keys', 'in_that_list']}
   */
+  //TODO: Change this to a recursive function that goes all the way down the chain
   for(var k in data) {
     if(typeof data[k] == 'object') {
       var subpath = intoPath.substr('gameData.'.length)
