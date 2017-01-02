@@ -45,10 +45,20 @@ Parser.prototype.readMDFile = function (filePath) {
   var lines = contents.split("\n")
   var obj = {
     name: lines[0].replace('#', '').trim(),
-    description: ""
+    description: "",
   }
-  lines.shift()
-  obj.description = mdConverter.makeHtml(lines.join("\n"))
+  lines.shift() //Drop the name
+  var text = lines.join("\n")
+  var parts = text.split("---")
+  console.log('PARTS for ' + filePath, parts)
+  if(parts.length > 1) {
+    obj.description = mdConverter.makeHtml(parts[0])
+    obj.explanation = mdConverter.makeHtml(parts[1])
+  }
+  else {
+    obj.description = mdConverter.makeHtml(parts[0])
+  }
+  
   obj.key = path.basename(filePath, path.extname(filePath))
   return obj
 }
