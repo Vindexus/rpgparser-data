@@ -50,7 +50,6 @@ Parser.prototype.readMDFile = function (filePath) {
   lines.shift() //Drop the name
   var text = lines.join("\n")
   var parts = text.split("---")
-  console.log('PARTS for ' + filePath, parts)
   if(parts.length > 1) {
     obj.description = mdConverter.makeHtml(parts[0])
     obj.explanation = mdConverter.makeHtml(parts[1])
@@ -108,15 +107,14 @@ Parser.prototype.loadFolder = function (folder, intoPath) {
     var filePath = folder + '/' + files[i]
     //this.log('filePath', filePath)
     if(fs.lstatSync(filePath).isDirectory()) {
-      //If the folder starts with a . then we put in root
+      //If the folder starts with a _ then we put in root
       //So gamedata/classes/warrior/.moves/doubleattack.js gould go into this.gameData.moves.doubleattack
-      if(files[i].substr(0, 1) == '.') {
+      if(files[i].substr(0, 1) == '_') {
         var ext = files[i].substr(1)
-        this.log('.' + ext + ', load into root')
+        this.log('_' + ext + ', load into root')
         this.gameData[ext] = _.extend(this.gameData[ext], this.loadFolder(filePath, 'gameData.' + ext))
       }
       else {
-        console.log('INSERT ' + key)
         data[key] = _.extend(this.gameData[key], this.loadFolder(filePath, intoPath + '.' + key))
       }
     }
@@ -208,5 +206,4 @@ Parser.prototype.run = function () {
   this.saveGameDataFile()
 }
 
-
-module.exports = new Parser()
+module.exports = Parser
