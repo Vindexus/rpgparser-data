@@ -188,12 +188,19 @@ Parser.prototype.loadPointers = function () {
 }
 
 Parser.prototype.saveGameDataFile = function () {
-  this.log('this.config.outputFile', this.config.outputFile)
-  fs.writeFile(this.config.outputFile, JSON.stringify(this.gameData), function (err) {
-    if(err) {
-      console.error(err)
-    }
-  }.bind(this))
+  this.log('this.config.outputFiles', this.config.outputFiles)
+  var files = typeof(this.config.outputFiles) == 'string' ? [this.config.outputFiles] : this.config.outputFiles
+  var jsonData = JSON.stringify(this.gameData)
+  files.forEach(function (file) {
+    fs.writeFile(file, jsonData, function (err) {
+      if(err) {
+        console.error(err)
+      }
+      else {
+        console.log('Written to ' + file)
+      }
+    }.bind(this))
+  })
 }
 
 Parser.prototype.run = function () {
