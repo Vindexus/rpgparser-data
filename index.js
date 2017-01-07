@@ -11,6 +11,7 @@ var Parser = function () {
     pointers: {}
   }
   this.gameData = {}
+  this.steps = []
 }
 
 Parser.prototype.log = function() {
@@ -25,6 +26,13 @@ Parser.prototype.init = function (config) {
   }
   this.dir = this.config.gameDataDir
   this.simplesDir = this.config.simplesDir
+}
+
+Parser.prototype.registerStep = function (fn, config) {
+  this.steps.push({
+    fn: fn,
+    config: config
+  })
 }
 
 Parser.prototype.loadSimples = function () {
@@ -68,7 +76,11 @@ Parser.prototype.readFile = function (filePath) {
     return this.readMDFile(filePath)
   }
   else if(ext == '.js') {
-    return require(filePath)
+    var contents = require(filePath)
+    if(!contents.key) {
+      contents.key = path.basename(filePath, path.extname(filePath))
+    }
+    return contents
   }
 }
 
@@ -208,6 +220,9 @@ Parser.prototype.run = function () {
   this.loadSimples()
   this.loadFolders()
   //this.log('Game data parsed: ', JSON.stringify(this.gameData))
+  this.steps.forEach(function (step) {
+    this.gameData = step.fn(this.gameData, step.config)
+  }.bind(this))
   this.loadShortcuts()
   this.loadPointers()
   this.saveGameDataFile()
