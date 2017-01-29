@@ -8,7 +8,8 @@ mdConverter.setOption('literalMidWordUnderscores', true)
 var Parser = function () {
   this.config = {
     debug: false,
-    pointers: {}
+    pointers: {},
+    convertMd: true
   }
   this.gameData = {}
   this.steps = []
@@ -59,11 +60,19 @@ Parser.prototype.readMDFile = function (filePath) {
   var text = lines.join("\n")
   var parts = text.split("---")
   if(parts.length > 1) {
+    if(this.config.convertMd) {
+      obj.explanation = mdConverter.makeHtml(parts[1])
+    }
+    else {
+      obj.explanation = parts[1]
+    }
+  }
+
+  if(this.config.convertMd) {
     obj.description = mdConverter.makeHtml(parts[0])
-    obj.explanation = mdConverter.makeHtml(parts[1])
   }
   else {
-    obj.description = mdConverter.makeHtml(parts[0])
+    obj.description = parts[0]
   }
   
   obj.key = path.basename(filePath, path.extname(filePath))
