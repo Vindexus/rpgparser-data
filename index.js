@@ -4,6 +4,7 @@ var _             = require('lodash')
 var showdown      = require('showdown')
 var mdConverter   = new showdown.Converter()
 mdConverter.setOption('literalMidWordUnderscores', true)
+mdConverter.setOption('simpleLineBreaks', true)
 
 var Parser = function () {
   this.config = {
@@ -13,6 +14,11 @@ var Parser = function () {
   }
   this.gameData = {}
   this.steps = []
+}
+
+Parser.prototype.convertMd = function (md) {
+  var html = mdConverter.makeHtml(md)
+  return html
 }
 
 Parser.prototype.log = function() {
@@ -61,7 +67,7 @@ Parser.prototype.readMDFile = function (filePath) {
   var parts = text.split("---")
   if(parts.length > 1) {
     if(this.config.convertMd) {
-      obj.explanation = mdConverter.makeHtml(parts[1])
+      obj.explanation = this.convertMd(parts[1])
     }
     else {
       obj.explanation = parts[1]
@@ -69,7 +75,7 @@ Parser.prototype.readMDFile = function (filePath) {
   }
 
   if(this.config.convertMd) {
-    obj.description = mdConverter.makeHtml(parts[0])
+    obj.description = this.convertMd(parts[0])
   }
   else {
     obj.description = parts[0]
