@@ -203,7 +203,7 @@ Parser.prototype.loadPointers = function () {
     eval(fromEval)
     if(typeof froms == 'undefined') {
       console.error('WRONG PATH IN POINTER: ' + path)
-      return
+      continue;
     }
     var to = this.config.pointers[path]
     for(var i = 0; i < froms.length; i++) {
