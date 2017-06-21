@@ -217,7 +217,7 @@ Parser.prototype.loadPointers = function () {
 Parser.prototype.saveGameDataFile = function () {
   this.log('this.config.outputFiles', this.config.outputFiles)
   var files = typeof(this.config.outputFiles) == 'string' ? [this.config.outputFiles] : this.config.outputFiles
-  var jsonData = JSON.stringify(this.gameData)
+  var jsonData = JSON.stringify(this.gameData, null, 2)
   files.forEach(function (file) {
     fs.writeFile(file, jsonData, function (err) {
       if(err) {
@@ -241,6 +241,28 @@ Parser.prototype.run = function () {
   this.loadShortcuts()
   this.loadPointers()
   this.saveGameDataFile()
+}
+
+Parser.helpers = {
+  //Given some game data objects in a key:object style, it will complete
+  //things that aren't already there
+  completeObjects: function (data) {
+    console.log('data', data);
+    for(var key in data) {
+      data[key].key = data[key].key || key;
+      data[key].name = data[key].name || Parser.helpers.keyToName(key);
+    }
+    return data
+  },
+  keyToName: function (key) {
+    return key.split("_").map(Parser.helpers.firstLetterUpper).join(" ")
+  },
+  firstLetterUpper: function (word, index) {
+    if(index > 0 && ['and', 'or', 'the', 'of'].indexOf(word) >= 0) {
+      return word
+    }
+    return word.substr(0,1).toUpperCase() + word.substr(1)
+  }
 }
 
 module.exports = Parser
