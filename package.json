@@ -1,6 +1,6 @@
 {
   "name": "rpgparser-data",
-  "version": "1.0.4",
+  "version": "1.0.6",
   "description": "Parses you individual RPG game data folders and files into a JSON object.",
   "main": "index.js",
   "scripts": {
