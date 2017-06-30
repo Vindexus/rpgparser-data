@@ -93,7 +93,10 @@ Parser.prototype.readFile = function (filePath) {
   else if(ext == '.js') {
     var contents = require(filePath)
     if(!contents.key) {
-      contents.key = path.basename(filePath, path.extname(filePath))
+      var key = path.basename(filePath, path.extname(filePath));
+      if(key != 'index') {
+        contents.key = key;
+      }
     }
     return contents
   }
@@ -169,10 +172,11 @@ Parser.prototype.loadFolder = function (folder, intoPath) {
   for(var k in data) {
     if(typeof data[k] == 'object') {
       var subpath = intoPath.substr('gameData.'.length)
+      subpath = subpath + (subpath.length > 0 ? '.' : '') + k
       var obj = data[k]
       if(obj.points_to) {
-        this.log('point ' + subpath + ' to ' + k)
-        this.config.pointers[subpath + (subpath.length > 0 ? '.' : '') + k] = obj.points_to
+        this.log('point ' + subpath + ' to ' + obj.points_to)
+        this.config.pointers[subpath] = obj.points_to
         data[k] = data[k].list
       }
     }
@@ -197,18 +201,31 @@ Parser.prototype.loadShortcuts = function () {
 }
 
 Parser.prototype.loadPointers = function () {
+  console.log('pointer paths: ' + Object.keys(this.config.pointers));
   for(var path in this.config.pointers) {
+    var drive = path.indexOf('drive') >= 0;
     var froms = {}
     var fromEval = 'froms = this.gameData.' + path
+    if(drive) {
+      console.log('fromEval', fromEval);
+    }
     eval(fromEval)
     if(typeof froms == 'undefined') {
       console.error('WRONG PATH IN POINTER: ' + path)
       continue;
     }
     var to = this.config.pointers[path]
+    if(drive) {
+      console.log('to', to);
+      console.log('froms', froms);
+    }
     for(var i = 0; i < froms.length; i++) {
       var key = froms[i]
+      console.log('key', key);
       var d = 'this.gameData.' + path + '[' + i + ']=this.gameData.' + to + '.' + key
+      if(drive) {
+        console.log('d', d);
+      }
       eval(d)
     }
   }
@@ -237,7 +254,8 @@ Parser.prototype.run = function () {
   //this.log('Game data parsed: ', JSON.stringify(this.gameData))
   this.steps.forEach(function (step) {
     this.gameData = step.fn(this.gameData, step.config)
-  }.bind(this))
+  }.bind(this));
+  console.log('ALl done the steps!' + this.steps.length);
   this.loadShortcuts()
   this.loadPointers()
   this.saveGameDataFile()
