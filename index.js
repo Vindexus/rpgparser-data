@@ -64,7 +64,7 @@ Parser.prototype.readMDFile = function (filePath) {
       obj.explanation = mdConverter.makeHtml(parts[1])
     }
     else {
-      obj.explanation = parts[1]
+      obj.explanation = parts[1].trim()
     }
   }
 
@@ -72,7 +72,7 @@ Parser.prototype.readMDFile = function (filePath) {
     obj.description = mdConverter.makeHtml(parts[0])
   }
   else {
-    obj.description = parts[0]
+    obj.description = parts[0].trim()
   }
   
   obj.key = path.basename(filePath, path.extname(filePath))
