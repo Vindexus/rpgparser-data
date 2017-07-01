@@ -2,6 +2,7 @@ var path          = require('path')
 var fs            = require('fs')
 var _             = require('lodash')
 var showdown      = require('showdown')
+var colors        = require('colors');
 var mdConverter   = new showdown.Converter()
 mdConverter.setOption('literalMidWordUnderscores', true)
 mdConverter.setOption('simpleLineBreaks', true)
@@ -29,7 +30,7 @@ Parser.prototype.log = function() {
 
 Parser.prototype.init = function (config) {
   for(var k in config) {
-    this.config[k] = config[k]
+    this.config[k] = config[k];
   }
   this.dir = this.config.gameDataDir
   this.simplesDir = this.config.simplesDir
@@ -40,6 +41,13 @@ Parser.prototype.registerStep = function (fn, config) {
     fn: fn,
     config: config
   })
+}
+
+Parser.prototype.registerStartingStep = function (fn, config) {
+  this.steps.unshift({
+    fn: fn,
+    config: config
+  });
 }
 
 Parser.prototype.loadSimples = function () {
@@ -201,32 +209,27 @@ Parser.prototype.loadShortcuts = function () {
 }
 
 Parser.prototype.loadPointers = function () {
-  console.log('pointer paths: ' + Object.keys(this.config.pointers));
   for(var path in this.config.pointers) {
-    var drive = path.indexOf('drive') >= 0;
     var froms = {}
     var fromEval = 'froms = this.gameData.' + path
-    if(drive) {
-      console.log('fromEval', fromEval);
-    }
     eval(fromEval)
     if(typeof froms == 'undefined') {
       console.error('WRONG PATH IN POINTER: ' + path)
       continue;
     }
     var to = this.config.pointers[path]
-    if(drive) {
-      console.log('to', to);
-      console.log('froms', froms);
-    }
     for(var i = 0; i < froms.length; i++) {
       var key = froms[i]
-      console.log('key', key);
-      var d = 'this.gameData.' + path + '[' + i + ']=this.gameData.' + to + '.' + key
-      if(drive) {
-        console.log('d', d);
+      var d = 'this.gameData.' + path + '[' + i + ']=this.gameData.' + to + '.' + key;
+      try {
+        eval(d)
       }
-      eval(d)
+      catch(ex) {
+        /*
+        console.log('ERROR IN POINTER: '.red + d.red);
+        console.log(ex.toString().red);
+        */
+      }
     }
   }
 }
@@ -241,21 +244,21 @@ Parser.prototype.saveGameDataFile = function () {
         console.error(err)
       }
       else {
-        console.log('Written to ' + file)
+        console.log('Written to ' + file.bold)
       }
     }.bind(this))
   })
 }
 
 Parser.prototype.run = function () {
+  this.gameData = _.clone({});
   this.log("shortcuts: ", this.config.shortcuts)
   this.loadSimples()
   this.loadFolders()
   //this.log('Game data parsed: ', JSON.stringify(this.gameData))
-  this.steps.forEach(function (step) {
-    this.gameData = step.fn(this.gameData, step.config)
+  this.steps.forEach(function (step, index) {
+    this.gameData = step.fn(_.cloneDeep(this.gameData), step.config);
   }.bind(this));
-  console.log('ALl done the steps!' + this.steps.length);
   this.loadShortcuts()
   this.loadPointers()
   this.saveGameDataFile()
@@ -265,7 +268,6 @@ Parser.helpers = {
   //Given some game data objects in a key:object style, it will complete
   //things that aren't already there
   completeObjects: function (data) {
-    console.log('data', data);
     for(var key in data) {
       data[key].key = data[key].key || key;
       data[key].name = data[key].name || Parser.helpers.keyToName(key);
