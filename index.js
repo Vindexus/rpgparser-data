@@ -54,7 +54,7 @@ Parser.prototype.loadSimples = function () {
   for(var i in this.config.simples) {
     var key =  this.config.simples[i];
     this.log('Loading simple: ' + key);
-    this.gameData[key] = require(path.resolve(path.join(this.simplesDir, key)));
+    this.gameData[key] = _.clone(require(path.resolve(path.join(this.simplesDir, key))));
   }
 }
 
@@ -88,7 +88,7 @@ Parser.prototype.readMDFile = function (filePath) {
   else {
     obj.description = parts[0].trim()
   }
-  
+
   obj.key = path.basename(filePath, path.extname(filePath))
   return obj
 }
@@ -106,7 +106,7 @@ Parser.prototype.readFile = function (filePath) {
         contents.key = key;
       }
     }
-    return contents
+    return _.clone(contents);
   }
 }
 
@@ -220,7 +220,7 @@ Parser.prototype.loadPointers = function () {
     var to = this.config.pointers[path]
     for(var i = 0; i < froms.length; i++) {
       var key = froms[i]
-      var d = 'this.gameData.' + path + '[' + i + ']=this.gameData.' + to + '.' + key;
+      var d = 'this.gameData.' + path + '[' + i + ']=_.clone(this.gameData.' + to + '.' + key + ')';
       try {
         eval(d)
       }
